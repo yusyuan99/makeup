@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>溫柔粉色 Doggy & Penguin 破冰降溫小助手 🐶🐧💕</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Confetti.js for celebration animation -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- html2canvas for card download -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <!-- Google Fonts for cute rounded typography -->
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            softPink: '#FFF0F5',
+            peachPink: '#FFD1DC',
+            rosePink: '#FF8DA1',
+            hotPink: '#FF4D6D',
+            creamYellow: '#FFF9E6',
+            doggyBrown: '#8D5B4C',
+            penguinNavy: '#2B3A4A',
+          },
+          fontFamily: {
+            sans: ['"M PLUS Rounded 1c"', '"Zen Maru Gothic"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #fff0f5 0%, #ffe4e8 50%, #fff0f5 100%);
+      min-height: 100vh;
+      font-family: 'M PLUS Rounded 1c', 'Zen Maru Gothic', sans-serif;
+      color: #4a3e3d;
+      user-select: none;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 10px 25px -5px rgba(255, 141, 161, 0.25);
+    }
+
+    .character-card.selected {
+      border-color: #FF4D6D !important;
+      background-color: #FFF0F5 !important;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.25);
+    }
+
+    .heart-particle {
+      position: fixed;
+      pointer-events: none;
+      animation: floatUp 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      z-index: 9999;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(0.6) rotate(0deg);
+      }
+      50% {
+        opacity: 0.9;
+        transform: translateY(-80px) scale(1.1) rotate(15deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-160px) scale(1) rotate(-15deg);
+      }
+    }
+
+    .pulse-btn {
+      animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 109, 0.4); }
+      50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(255, 77, 109, 0); }
+    }
+
+    .slide-in {
+      animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stamp-badge {
+      transform: rotate(-12deg);
+      animation: stampIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes stampIn {
+      0% { opacity: 0; transform: scale(3) rotate(20deg); }
+      100% { opacity: 1; transform: scale(1) rotate(-12deg); }
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="text-stone-700 pb-12 flex flex-col items-center min-h-screen">
+
+  <div class="w-full max-w-lg px-4 pt-5 pb-2 sticky top-0 z-40">
+    <div class="glass-card rounded-3xl p-3 flex justify-between items-center border-2 border-rose-100">
+      <div class="flex items-center space-x-2">
+        <div id="headerAvatar" class="w-11 h-11 rounded-2xl bg-rose-100 flex items-center justify-center text-2xl shadow-sm border-2 border-white overflow-hidden">
+          🐶
+        </div>
+        <div>
+          <div class="flex items-center gap-1">
+            <h1 class="font-black text-stone-800 text-sm leading-tight">破冰降溫小助手</h1>
+            <span class="text-[10px] bg-rose-100 text-hotPink font-extrabold px-1.5 py-0.5 rounded-full">Doggy & Penguin</span>
+          </div>
+          <p id="headerSpeech" class="text-[11px] text-stone-500 font-bold">「汪汪...搖尾巴認錯，求原諒🥺🐾」</p>
+        </div>
+      </div>
+
+      <!-- Role Switcher -->
+      <div class="bg-rose-50/80 p-1 rounded-2xl flex items-center gap-1 text-xs font-bold border border-rose-200">
+        <button id="roleSenderBtn" onclick="switchRole('sender')" class="px-2.5 py-1.5 rounded-xl transition-all duration-300 bg-white text-hotPink shadow-sm font-extrabold">
+          💌 破冰者
+        </button>
+        <button id="roleReceiverBtn" onclick="switchRole('receiver')" class="px-2.5 py-1.5 rounded-xl transition-all duration-300 text-stone-500 hover:text-stone-800 font-bold">
+          🥺 收到者
+        </button>
+        <button onclick="openRoleInfoModal()" class="w-7 h-7 rounded-xl bg-white/80 hover:bg-white text-rose-400 hover:text-hotPink flex items-center justify-center transition-all" title="模式說明">
+          <i class="fa-solid fa-circle-question"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="w-full max-w-lg px-4 mt-2 flex-grow flex flex-col space-y-3.5">
+
+    <section class="glass-card rounded-3xl p-3.5 border-2 border-white shadow-sm slide-in">
+      <div class="text-xs font-black text-stone-600 mb-2 flex items-center justify-between">
+        <span class="flex items-center gap-1.5">
+          <span class="text-base">💖</span> 選擇破冰代言人
+        </span>
+        <span class="text-[10px] text-hotPink font-bold">點擊選擇吉祥物</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" onclick="selectCharacter('dog')" id="charBtn-dog" class="character-card selected p-2 rounded-2xl border-2 border-rose-100 bg-white hover:bg-rose-50/50 transition-all text-center flex flex-col items-center space-y-0.5">
+          <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-lg shadow-inner border border-white">
+            🐶
+          </div>
+          <span class="font-extrabold text-xs text-stone-800">汪汪小狗</span>
+          <span class="text-[9px] text-amber-700 font-bold">搖尾巴討抱抱</span>
+        </button>
+
+        <button type="button" onclick="selectCharacter('penguin')" id="charBtn-penguin" class="character-card p-2 rounded-2xl border-2 border-rose-100 bg-white hover:bg-rose-50/50 transition-all text-center flex flex-col items-center space-y-0.5">
+          <div class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-lg shadow-inner border border-white">
+            🐧
+          </div>
+          <span class="font-extrabold text-xs text-stone-800">呆萌企鵝</span>
+          <span class="text-[9px] text-slate-600 font-bold">搖晃貼貼認錯</span>
+        </button>
+
+        <button type="button" onclick="selectCharacter('duo')" id="charBtn-duo" class="character-card p-2 rounded-2xl border-2 border-rose-100 bg-white hover:bg-rose-50/50 transition-all text-center flex flex-col items-center space-y-0.5">
+          <div class="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center text-base shadow-inner border border-white">
+            🐶💖🐧
+          </div>
+          <span class="font-extrabold text-xs text-stone-800">狗勾企鵝組</span>
+          <span class="text-[9px] text-hotPink font-bold">雙倍可愛和解</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="glass-card rounded-3xl p-4 border-2 border-white slide-in">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-black tracking-wider text-hotPink uppercase flex items-center gap-1">
+          <i class="fa-solid fa-temperature-half"></i> 🌡️ 氣氛降溫計 / 心情狀態
+        </span>
+        <span id="moodBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-rose-100 text-hotPink font-extrabold border border-rose-200">
+          🔥 火山爆發中 (生氣 90%)
+        </span>
+      </div>
+
+      <!-- Animated Progress Bar -->
+      <div class="w-full bg-rose-100/70 h-4 rounded-full overflow-hidden p-0.5 border border-rose-200 shadow-inner">
+        <div id="moodProgressBar" class="h-full bg-gradient-to-r from-rose-500 via-pink-400 to-emerald-400 rounded-full transition-all duration-700 w-[90%]"></div>
+      </div>
+
+      <div class="flex justify-between text-[10px] font-bold text-stone-400 mt-1.5 px-1">
+        <span>🔥 火山爆發</span>
+        <span>🧊 冷戰冰封</span>
+        <span>🌤️ 漸漸降溫</span>
+        <span>☀️ 破冰成功</span>
+      </div>
+    </section>
+
+    <!-- Step Container -->
+    <div id="stepContainer" class="w-full">
+      
+      <section id="step1" class="glass-card rounded-3xl p-5 border-2 border-white slide-in space-y-4">
+        <div class="text-center space-y-1.5">
+          <div id="step1Avatar" class="inline-block p-2.5 rounded-full bg-rose-100 text-3xl mb-0.5 border-2 border-white shadow-sm">🐶</div>
+          <h2 id="step1Title" class="text-base font-black text-stone-800">「汪汪...你現在還在生氣嗎？」</h2>
+          <p class="text-xs text-stone-500 font-medium">點擊選擇當前心情，狗狗與企鵝為你溫柔傳情～</p>
+        </div>
+
+        <div class="space-y-2.5 pt-1">
+          <button onclick="handleMoodChoice('angry')" class="w-full p-3.5 rounded-2xl border-2 border-rose-100 bg-white hover:border-rose-300 hover:bg-rose-50/50 transition-all text-left flex items-center justify-between group shadow-sm">
+            <div class="flex items-center space-x-3">
+              <span class="text-2xl group-hover:scale-125 transition-transform">🔥</span>
+              <div>
+                <div class="font-black text-stone-800 text-xs">超級生氣！火山爆發中</div>
+                <div class="text-[11px] text-stone-400 font-medium">需要 10 秒冷靜降心丸倒數</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-angle-right text-stone-300 group-hover:text-hotPink group-hover:translate-x-1 transition-all"></i>
+          </button>
+
+          <button onclick="handleMoodChoice('a_little')" class="w-full p-3.5 rounded-2xl border-2 border-rose-100 bg-white hover:border-rose-300 hover:bg-rose-50/50 transition-all text-left flex items-center justify-between group shadow-sm">
+            <div class="flex items-center space-x-3">
+              <span class="text-2xl group-hover:scale-125 transition-transform">🤏</span>
+              <div>
+                <div class="font-black text-stone-800 text-xs">還有一點小彆扭與賭氣</div>
+                <div class="text-[11px] text-stone-400 font-medium">要看狗狗搖尾巴誠意表現</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-angle-right text-stone-300 group-hover:text-hotPink group-hover:translate-x-1 transition-all"></i>
+          </button>
+
+          <button onclick="handleMoodChoice('waiting')" class="w-full p-3.5 rounded-2xl border-2 border-rose-100 bg-white hover:border-rose-300 hover:bg-rose-50/50 transition-all text-left flex items-center justify-between group shadow-sm">
+            <div class="flex items-center space-x-3">
+              <span class="text-2xl group-hover:scale-125 transition-transform">🥺</span>
+              <div>
+                <div class="font-black text-stone-800 text-xs">不生氣了，在等你過來抱抱</div>
+                <div class="text-[11px] text-stone-400 font-medium">隨時準備好暖暖抱抱與貼貼</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-angle-right text-stone-300 group-hover:text-hotPink group-hover:translate-x-1 transition-all"></i>
+          </button>
+
+          <button onclick="handleMoodChoice('hungry')" class="w-full p-3.5 rounded-2xl border-2 border-amber-100 bg-amber-50/50 hover:border-amber-300 hover:bg-amber-100/50 transition-all text-left flex items-center justify-between group shadow-sm">
+            <div class="flex items-center space-x-3">
+              <span class="text-2xl group-hover:scale-125 transition-transform">🍗</span>
+              <div>
+                <div class="font-black text-stone-800 text-xs">我沒生氣，我只是肚子餓了</div>
+                <div class="text-[11px] text-amber-600 font-bold">快帶我去吃烤肉大餐或甜點！</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-angle-right text-stone-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all"></i>
+          </button>
+        </div>
+      </section>
+
+      <section id="step2" class="glass-card rounded-3xl p-5 border-2 border-white slide-in space-y-4 hidden">
+        <div class="text-center space-y-1">
+          <div class="inline-block p-2.5 rounded-full bg-rose-100 text-2xl mb-0.5 border border-white">📜 真心話</div>
+          <h2 class="text-base font-black text-stone-800">「誠摯道歉與反省事項」</h2>
+          <p class="text-xs text-stone-500 font-medium">坦承內心想法，並選出你要提供的賠罪誠意</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-black text-stone-700 flex items-center gap-1">
+            <span class="text-hotPink">💔</span> 認錯與反省選項（可複選）:
+          </label>
+          
+          <div id="mistakeOptions" class="grid grid-cols-1 gap-2">
+            <button type="button" onclick="toggleSelection(this, 'mistakes', '講話太急太衝/沒有考慮你的感受')" class="option-btn p-3 rounded-2xl border border-rose-100 bg-white text-left text-xs font-bold text-stone-700 flex items-center justify-between transition-all">
+              <span>🗣️ 講話太急太衝 / 沒顧慮你的心情</span>
+              <i class="fa-regular fa-circle check-icon text-stone-300"></i>
+            </button>
+            <button type="button" onclick="toggleSelection(this, 'mistakes', '沒有耐心聽你把話講完')" class="option-btn p-3 rounded-2xl border border-rose-100 bg-white text-left text-xs font-bold text-stone-700 flex items-center justify-between transition-all">
+              <span>👂 沒有耐心靜下心聽你說話</span>
+              <i class="fa-regular fa-circle check-icon text-stone-300"></i>
+            </button>
+            <button type="button" onclick="toggleSelection(this, 'mistakes', '忘記約定或忽略了小細節')" class="option-btn p-3 rounded-2xl border border-rose-100 bg-white text-left text-xs font-bold text-stone-700 flex items-center justify-between transition-all">
+              <span>📅 忘記重要約定 / 忽略了小細節</span>
+              <i class="fa-regular fa-circle check-icon text-stone-300"></i>
+            </button>
+            <button type="button" onclick="toggleSelection(this, 'mistakes', '鬧情緒沒有第一時間抱抱你')" class="option-btn p-3 rounded-2xl border border-rose-100 bg-white text-left text-xs font-bold text-stone-700 flex items-center justify-between transition-all">
+              <span>🐾 一時彆扭，沒有第一時間過來抱抱你</span>
+              <i class="fa-regular fa-circle check-icon text-stone-300"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-black text-stone-700 flex items-center justify-between">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-pen-nib text-hotPink"></i> ✍️ 手寫真心話 / 補充道歉內文：</span>
+            <span class="text-[10px] text-stone-400 font-bold">選填</span>
+          </label>
+          <textarea id="customMistakeText" rows="3" placeholder="例如：寶貝對不起！我剛才太急噪了，其實我超級在乎你，不想因為這點小事讓你傷心..." class="w-full p-3 rounded-2xl border-2 border-rose-100 text-xs font-medium focus:outline-none focus:border-hotPink focus:ring-2 focus:ring-rose-100 bg-white/90 text-stone-700 placeholder-stone-300 resize-none transition-all shadow-inner"></textarea>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-black text-stone-700 flex items-center gap-1">
+            <span class="text-amber-500">🎁</span> 選擇賠罪方式（我的賠罪誠意）:
+          </label>
+          
+          <div id="perkOptions" class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="toggleSelection(this, 'perks', '請吃熱騰騰燒肉/火鍋大餐')" class="option-btn p-2.5 rounded-2xl border border-rose-200 bg-rose-50/40 text-left text-xs font-extrabold text-stone-700 flex flex-col justify-between h-20 transition-all">
+              <span class="text-lg">🍲</span>
+              <span class="font-black text-[11px]">請吃熱騰騰燒肉/火鍋大餐</span>
+            </button>
+            <button type="button" onclick="toggleSelection(this, 'perks', '專屬肩頸按摩與聽話 20 分鐘')" class="option-btn p-2.5 rounded-2xl border border-rose-200 bg-rose-50/40 text-left text-xs font-extrabold text-stone-700 flex flex-col justify-between h-20 transition-all">
+              <span class="text-lg">💆</span>
+              <span class="font-black text-[11px]">專屬狗狗肩頸舒壓按摩</span>
+            </button>
+            <button type="button" onclick="toggleSelection(this, 'perks', '承包這週末的所有家務清潔')" class="option-btn p-2.5 rounded-2xl border border-rose-200 bg-rose-50/40 text-left text-xs font-extrabold text-stone-700 flex flex-col justify-between h-20 transition-all">
+              <span class="text-lg">🧹</span>
+              <span class="font-black text-[11px]">承包本週末所有家務清潔</span>
+            </button>
+            <button type="button" onclick="toggleSelection(this, 'perks', '狗狗溫暖無限大抱抱與貼貼')" class="option-btn p-2.5 rounded-2xl border border-rose-200 bg-rose-50/40 text-left text-xs font-extrabold text-stone-700 flex flex-col justify-between h-20 transition-all">
+              <span class="text-lg">🐾</span>
+              <span class="font-black text-[11px]">無條件溫暖大抱抱與貼貼</span>
+            </button>
+          </div>
+        </div>
+
+        <button onclick="goToStep(3)" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-400 to-hotPink text-white font-black text-sm shadow-md hover:shadow-lg transition-all pulse-btn">
+          選擇好了！下一步規劃多元修復約會 👉
+        </button>
+      </section>
+
+      <section id="step3" class="glass-card rounded-3xl p-5 border-2 border-white slide-in space-y-4 hidden">
+        <div class="text-center space-y-1">
+          <div class="inline-block p-2.5 rounded-full bg-rose-100 text-2xl mb-0.5 border border-white">🗺️</div>
+          <h2 class="text-base font-black text-stone-800">「氣消了，下次去哪裡玩？」</h2>
+          <p class="text-xs text-stone-500 font-medium">多樣化行程選擇，也可讓狗狗企鵝為你抽靈感！</p>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex space-x-1.5 overflow-x-auto no-scrollbar pb-1 border-b border-rose-100 text-xs font-extrabold">
+          <button type="button" onclick="switchActivityTab('food')" id="tab-food" class="activity-tab active px-3 py-1.5 rounded-xl bg-hotPink text-white whitespace-nowrap transition-all">
+            🍱 美食享樂
+          </button>
+          <button type="button" onclick="switchActivityTab('outdoor')" id="tab-outdoor" class="activity-tab px-3 py-1.5 rounded-xl bg-white text-stone-600 hover:bg-rose-50 whitespace-nowrap transition-all">
+            🏕️ 戶外踏青
+          </button>
+          <button type="button" onclick="switchActivityTab('home')" id="tab-home" class="activity-tab px-3 py-1.5 rounded-xl bg-white text-stone-600 hover:bg-rose-50 whitespace-nowrap transition-all">
+            🏡 宅家溫馨
+          </button>
+          <button type="button" onclick="switchActivityTab('diy')" id="tab-diy" class="activity-tab px-3 py-1.5 rounded-xl bg-white text-stone-600 hover:bg-rose-50 whitespace-nowrap transition-all">
+            🎨 創意手作
+          </button>
+          <button type="button" onclick="switchActivityTab('relax')" id="tab-relax" class="activity-tab px-3 py-1.5 rounded-xl bg-white text-stone-600 hover:bg-rose-50 whitespace-nowrap transition-all">
+            💆 紓壓放鬆
+          </button>
+          <button type="button" onclick="switchActivityTab('trip')" id="tab-trip" class="activity-tab px-3 py-1.5 rounded-xl bg-white text-stone-600 hover:bg-rose-50 whitespace-nowrap transition-all">
+            🗺️ 小旅行
+          </button>
+        </div>
+
+        <!-- Activity Options Container -->
+        <div id="activityOptionsContent" class="grid grid-cols-2 gap-2 min-h-[150px]">
+          <!-- Dynamic contents populated via JS -->
+        </div>
+
+        <!-- Random Picker Button -->
+        <button type="button" onclick="pickRandomActivity()" class="w-full py-2.5 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/60 hover:bg-rose-100 text-hotPink font-black text-xs flex items-center justify-center gap-2 transition-all">
+          <i class="fa-solid fa-dice text-sm"></i> 🎲 沒想法？狗狗企鵝幫你抽一個約會靈感！
+        </button>
+
+        <div class="space-y-2.5 pt-1">
+          <div>
+            <label class="text-xs font-black text-stone-700 block mb-1">✍️ 補充其他專屬地點：</label>
+            <input type="text" id="customActivityInput" placeholder="例如：去基隆看海、去寵物餐廳玩狗狗..." class="w-full px-3.5 py-2 rounded-2xl border-2 border-rose-100 text-xs font-medium focus:outline-none focus:border-hotPink bg-white/90">
+          </div>
+
+          <div>
+            <label class="text-xs font-black text-stone-700 block mb-1">📅 預計和解出發時間：</label>
+            <div class="flex gap-2">
+              <button type="button" onclick="setDatePreference('this_weekend')" id="btnWeekend" class="flex-1 py-2 rounded-xl border-2 border-rose-300 text-xs font-black text-white bg-hotPink transition-all shadow-sm">
+                本週末就出發！
+              </button>
+              <input type="date" id="datePicker" onchange="setDatePreference('custom')" class="px-3 py-2 rounded-xl border-2 border-rose-100 text-xs font-bold text-stone-600 bg-white">
+            </div>
+          </div>
+        </div>
+
+        <button onclick="generateTreatyCard()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-400 to-hotPink text-white font-black text-sm shadow-md hover:shadow-lg transition-all pulse-btn">
+          ✨ 生成粉色和解停戰證書
+        </button>
+      </section>
+
+      <section id="step4" class="slide-in space-y-4 hidden">
+        
+        <div id="treatyCard" class="glass-card rounded-3xl p-5 border-4 border-rose-200 bg-white relative overflow-hidden shadow-2xl">
+          
+          <div class="absolute -top-2 -right-2 w-24 h-24">
+            <div id="peaceStamp" class="stamp-badge bg-hotPink text-white text-[10px] font-black px-6 py-1 text-center shadow-md transform rotate-45 mt-4 mr-[-20px] border border-white">
+              破冰和解成功
+            </div>
+          </div>
+
+          <div class="text-center space-y-1 pb-3 border-b-2 border-dashed border-rose-100">
+            <div class="flex justify-center items-center gap-2">
+              <span id="cardCharAvatar" class="text-3xl">🐶</span>
+              <span class="text-2xl">💖📜🕊️</span>
+            </div>
+            <h3 class="text-base font-black text-stone-800 tracking-wide">Doggy & Penguin 和解停戰協定</h3>
+            <p id="treatyDateStr" class="text-[10px] text-stone-400 font-bold">簽署日期：2026.10.11</p>
+          </div>
+
+          <div class="py-3 space-y-2.5 text-xs text-stone-700">
+            <div class="bg-rose-50/80 p-2.5 rounded-2xl border border-rose-200 space-y-0.5">
+              <p class="font-black text-hotPink flex items-center gap-1">
+                <span>🌡️</span> 氣氛融冰轉變：
+              </p>
+              <p id="cardMoodText" class="pl-4 font-bold text-stone-700">🥺 不生氣了，等待狗狗過來抱抱與貼貼</p>
+            </div>
+
+            <div class="space-y-0.5">
+              <p class="font-black text-stone-800 flex items-center gap-1">
+                <span>💔</span> 真心話與反省內容：
+              </p>
+              <ul id="cardMistakesList" class="list-disc list-inside pl-2 space-y-0.5 text-stone-600 font-bold">
+                <li>講話太衝，沒有顧慮你的感受</li>
+              </ul>
+            </div>
+
+            <div class="space-y-0.5">
+              <p class="font-black text-stone-800 flex items-center gap-1">
+                <span>🎁</span> 我的賠罪誠意（賠罪方式）：
+              </p>
+              <ul id="cardPerksList" class="list-disc list-inside pl-2 space-y-0.5 text-stone-600 font-bold">
+                <li>獲得無條件狗狗大抱抱與貼貼 🐾</li>
+              </ul>
+            </div>
+
+            <div class="space-y-0.5">
+              <p class="font-black text-stone-800 flex items-center gap-1">
+                <span>🗺️</span> 預計修復約會行程：
+              </p>
+              <p id="cardActivitiesText" class="pl-4 font-bold text-stone-700">🍜 吃爆熱騰騰燒肉火鍋</p>
+              <p id="cardDateText" class="pl-4 text-[10px] text-stone-400 font-bold">⏰ 時間：本週末就出發！</p>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t-2 border-dashed border-rose-100 flex justify-between items-center text-[10px] text-stone-400 font-bold">
+            <span id="cardFooterChar">🤝 汪汪小狗見證：融冰和平共處</span>
+            <span>🌸 Doggy & Penguin 破冰降溫小助手</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <button onclick="shareTextToClipboard()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-400 to-hotPink text-white font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <i class="fa-solid fa-copy"></i> 複製和解文字傳給對方 💌
+          </button>
+          
+          <button onclick="downloadCardImage()" class="w-full py-2.5 rounded-2xl bg-white border-2 border-rose-200 text-stone-700 font-black text-xs hover:bg-rose-50 transition-all flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-download text-hotPink"></i> 下載粉色和解證書卡圖片
+          </button>
+
+          <button onclick="restartFlow()" class="w-full py-2 text-stone-400 hover:text-stone-600 font-black text-xs transition-all text-center">
+            🔄 重新進行一次破冰
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Role Guidance Modal -->
+  <div id="roleInfoModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl p-5 max-w-sm w-full space-y-3.5 shadow-2xl slide-in bg-white border-2 border-rose-200">
+      <div class="flex justify-between items-center pb-2 border-b border-rose-100">
+        <h3 class="text-sm font-black text-stone-800 flex items-center gap-2">
+          <span class="text-lg">💡</span> 兩者差別在哪？
+        </h3>
+        <button onclick="closeRoleInfoModal()" class="text-stone-400 hover:text-stone-600 text-xs">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-2.5 text-xs text-stone-600 leading-relaxed font-medium">
+        <div class="bg-rose-50/80 p-2.5 rounded-2xl border border-rose-200 space-y-0.5">
+          <div class="font-black text-hotPink flex items-center gap-1 text-xs">
+            💌 破冰者模式 (主動傳送者)
+          </div>
+          <p class="text-[11px] text-stone-600">
+            適合<strong>想主動向對方道歉、破冰修復關係</strong>的人。
+            <br>• 選取/打字輸入真心話與反省內容。
+            <br>• 提供賠罪方式（如：肩頸按摩、請吃大餐）。
+            <br>• 生成「粉色和解證書」傳給對方！
+          </p>
+        </div>
+
+        <div class="bg-amber-50/80 p-2.5 rounded-2xl border border-amber-200 space-y-0.5">
+          <div class="font-black text-amber-700 flex items-center gap-1 text-xs">
+            🥺 收到者模式 (訊息接收者)
+          </div>
+          <p class="text-[11px] text-stone-600">
+            適合<strong>收到這份連結/網頁</strong>的人開啟。
+            <br>• 回應「現在氣消了沒」或點選想進行的約會。
+            <br>• 一鍵回傳同意融冰的心情給對方！
+          </p>
+        </div>
+      </div>
+
+      <button onclick="closeRoleInfoModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-400 to-hotPink text-white font-black text-xs shadow-md">
+        我知道了！開始破冰 💕
+      </button>
+    </div>
+  </div>
+
+  <!-- Cool-down 10s Timer Modal -->
+  <div id="coolDownModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl p-5 max-w-sm w-full text-center space-y-3 shadow-2xl slide-in bg-white border-2 border-rose-200">
+      <div class="text-4xl animate-bounce">🐶🐾💊</div>
+      <h3 class="text-base font-black text-stone-800">送你 10 秒冷靜降心丸</h3>
+      <p class="text-xs text-stone-500 font-bold leading-relaxed">
+        生氣會長皺紋喔～深呼吸，讓汪汪小狗陪你倒數 10 秒，情緒冷靜下來好嗎？🥺
+      </p>
+
+      <div class="text-3xl font-black text-hotPink my-1" id="timerCount">10</div>
+
+      <button id="modalCloseBtn" disabled onclick="closeModal()" class="w-full py-2.5 rounded-xl bg-stone-200 text-stone-400 font-bold text-xs transition-all">
+        請等候冷靜倒數...
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-stone-800/90 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastMsg">已複製和解訊息！</span>
+  </div>
+
+  <script>
+    // Mascot characters configuration
+    const characters = {
+      dog: {
+        name: '汪汪小狗',
+        emoji: '🐶',
+        bgColor: 'bg-amber-100',
+        speeches: [
+          '「汪汪...搖尾巴認錯，求原諒🥺🐾」',
+          '「不要生氣了嘛...趴在你腳邊討抱抱！」',
+          '「抱在一起就不冷也不生氣了～」'
+        ]
+      },
+      penguin: {
+        name: '呆萌企鵝',
+        emoji: '🐧',
+        bgColor: 'bg-slate-100',
+        speeches: [
+          '「搖搖晃晃～企鵝貼貼求原諒🐧💕」',
+          '「遞給你一顆美味甜甜圈🍩」',
+          '「踏著小碎步過來給你抱抱！」'
+        ]
+      },
+      duo: {
+        name: '狗勾企鵝組',
+        emoji: '🐶💖🐧',
+        bgColor: 'bg-rose-100',
+        speeches: [
+          '「狗狗與企鵝聯手向你誠懇道歉！✨」',
+          '「雙倍可愛，雙倍和解誠意！」',
+          '「開開心心抱在一起和好吧！」'
+        ]
+      }
+    };
+
+    // Activity database categorized into 6 tabs
+    const activityData = {
+      food: [
+        { icon: '🍲', name: '吃爆熱騰騰燒肉/火鍋', desc: '美味暖胃，破冰第一名' },
+        { icon: '🍰', name: '浪漫甜點下午茶', desc: '甜食補給滿滿幸福感' },
+        { icon: '🍢', name: '逛夜市吃宵夜小吃', desc: '熱氣騰騰接地氣約會' },
+        { icon: '🥂', name: '高空景觀餐廳浪漫晚餐', desc: '精緻氛圍修復關係' }
+      ],
+      outdoor: [
+        { icon: '🌊', name: '海邊散步看夕陽聽浪聲', desc: '浪漫海風吹走負面情緒' },
+        { icon: '🏕️', name: '草地露營野餐放空', desc: '享受大自然與專屬時光' },
+        { icon: '🐶', name: '去寵物餐廳玩狗勾貓咪', desc: '超強萌寵療癒身心' },
+        { icon: '💐', name: '逛花市買一束美美的花', desc: '把生活儀式感拉滿' }
+      ],
+      home: [
+        { icon: '🍳', name: '一起下廚煮一頓美食', desc: '共同合作打造溫馨一餐' },
+        { icon: '🎬', name: '窩沙發蓋毛毯看電影追劇', desc: '零食準備好，抱著一起看' },
+        { icon: '🧩', name: '一起挑戰拼圖或桌遊', desc: '互動趣味提升默契' },
+        { icon: '🧖‍♀️', name: '在家敷面膜一起拉筋放鬆', desc: '宅在家裡的溫馨療癒' }
+      ],
+      diy: [
+        { icon: '💍', name: 'DIY 金工戒指/手鍊體驗', desc: '親手製作刻字專屬紀念' },
+        { icon: '🧸', name: '流體熊/Tufting 地毯手作', desc: '療癒手作紓壓又有趣' },
+        { icon: '🍞', name: '手作烘焙 DIY 蛋糕甜點', desc: '一起親手烤出甜蜜香氣' },
+        { icon: '🏺', name: '手拉胚陶藝捏塑體驗', desc: '靜心感受手作沉靜感' }
+      ],
+      relax: [
+        { icon: '💆‍♂️', name: '雙人情侶 SPA 按摩舒壓', desc: '放鬆筋骨徹底解除壓力' },
+        { icon: '♨️', name: '溫泉泡湯/日式足湯體驗', desc: '全身暖呼呼，情緒也融冰' },
+        { icon: '🎤', name: '卡拉 OK 包廂大聲唱歌', desc: '把不開心全部唱出來' },
+        { icon: '🎭', name: '看喜劇/脫口秀演出', desc: '一起哈哈大笑開開心心' }
+      ],
+      trip: [
+        { icon: '🚗', name: '兩天一夜近郊輕旅行', desc: '換個地方換個好心情' },
+        { icon: '🚂', name: '搭火車隨機下一站的小冒險', desc: '充滿未知驚喜的微旅行' },
+        { icon: '🏛️', name: '逛美術館/文創展覽', desc: '走走停停感受藝術氣息' },
+        { icon: '🌌', name: '夜間上山看城市夜景星空', desc: '安靜享受兩人世界' }
+      ]
+    };
+
+    // Global App State
+    const state = {
+      character: 'dog',
+      role: 'sender',
+      mood: 'angry',
+      mistakes: [],
+      perks: [],
+      activities: [],
+      currentTab: 'food',
+      customActivity: '',
+      datePreference: '本週末就出發！'
+    };
+
+    window.onload = function() {
+      updateMoodUI('angry', 90);
+      renderActivityOptions('food');
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('datePicker').min = today;
+    };
+
+    function selectCharacter(charKey) {
+      state.character = charKey;
+      const charData = characters[charKey];
+
+      document.querySelectorAll('.character-card').forEach(card => card.classList.remove('selected'));
+      document.getElementById(`charBtn-${charKey}`).classList.add('selected');
+
+      const headerAvatar = document.getElementById('headerAvatar');
+      headerAvatar.innerHTML = charData.emoji;
+      headerAvatar.className = `w-11 h-11 rounded-2xl ${charData.bgColor} flex items-center justify-center text-2xl shadow-sm border-2 border-white overflow-hidden`;
+
+      const speechIndex = Math.floor(Math.random() * charData.speeches.length);
+      document.getElementById('headerSpeech').innerText = charData.speeches[speechIndex];
+
+      document.getElementById('step1Avatar').innerText = charData.emoji;
+      document.getElementById('cardCharAvatar').innerText = charData.emoji;
+      document.getElementById('cardFooterChar').innerText = `🤝 ${charData.name}見證：融冰和平共處`;
+
+      triggerHeartEffects();
+      showToast(`已選擇破冰代言人：${charData.name} ${charData.emoji}`);
+    }
+
+    function switchRole(role) {
+      state.role = role;
+      const senderBtn = document.getElementById('roleSenderBtn');
+      const receiverBtn = document.getElementById('roleReceiverBtn');
+      
+      if(role === 'sender') {
+        senderBtn.className = "px-2.5 py-1.5 rounded-xl transition-all duration-300 bg-white text-hotPink shadow-sm font-extrabold";
+        receiverBtn.className = "px-2.5 py-1.5 rounded-xl transition-all duration-300 text-stone-500 hover:text-stone-800 font-bold";
+        showToast("已切換為破冰者視角 💌");
+      } else {
+        receiverBtn.className = "px-2.5 py-1.5 rounded-xl transition-all duration-300 bg-white text-hotPink shadow-sm font-extrabold";
+        senderBtn.className = "px-2.5 py-1.5 rounded-xl transition-all duration-300 text-stone-500 hover:text-stone-800 font-bold";
+        showToast("已切換為收到者視角 🥺");
+      }
+    }
+
+    function openRoleInfoModal() {
+      document.getElementById('roleInfoModal').classList.remove('hidden');
+    }
+    function closeRoleInfoModal() {
+      document.getElementById('roleInfoModal').classList.add('hidden');
+    }
+
+    function handleMoodChoice(moodType) {
+      state.mood = moodType;
+      triggerHeartEffects();
+
+      if(moodType === 'angry') {
+        updateMoodUI('angry', 90);
+        openCoolDownModal();
+      } else if(moodType === 'a_little') {
+        updateMoodUI('a_little', 50);
+        showToast("汪汪小狗給你一個大抱抱！🐾");
+        setTimeout(() => goToStep(2), 600);
+      } else if(moodType === 'waiting') {
+        updateMoodUI('waiting', 20);
+        confettiEffect();
+        showToast("太好了！隨時準備抱抱！💕");
+        setTimeout(() => goToStep(2), 600);
+      } else if(moodType === 'hungry') {
+        updateMoodUI('hungry', 40);
+        showToast("美食修復啟動！馬上安排大餐 🍲");
+        setTimeout(() => goToStep(3), 600);
+      }
+    }
+
+    // Updated and restored Mood UI Progress function
+    function updateMoodUI(mood, percentage = 90) {
+      const progressBar = document.getElementById('moodProgressBar');
+      const moodBadge = document.getElementById('moodBadge');
+
+      progressBar.style.width = percentage + '%';
+
+      switch(mood) {
+        case 'angry':
+          moodBadge.innerHTML = '🔥 火山爆發中 (生氣 90%)';
+          moodBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-rose-100 text-hotPink font-extrabold border border-rose-200';
+          break;
+        case 'a_little':
+          moodBadge.innerHTML = '🧊 冷戰冰封中 (生氣 50%)';
+          moodBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-extrabold border border-amber-200';
+          break;
+        case 'waiting':
+          moodBadge.innerHTML = '🌤️ 漸漸降溫中 (生氣 20%)';
+          moodBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-600 font-extrabold border border-pink-200';
+          break;
+        case 'hungry':
+          moodBadge.innerHTML = '🍗 肚子的怒氣 (生氣 40%)';
+          moodBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-600 font-extrabold border border-orange-200';
+          break;
+        case 'peace':
+          moodBadge.innerHTML = '☀️ 破冰成功！大晴天 (生氣 0%)';
+          moodBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-extrabold border border-emerald-200';
+          progressBar.style.width = '100%';
+          break;
+      }
+    }
+
+    function toggleSelection(element, type, value) {
+      const index = state[type].indexOf(value);
+      const checkIcon = element.querySelector('.check-icon');
+
+      if (index > -1) {
+        state[type].splice(index, 1);
+        element.classList.remove('border-hotPink', 'bg-rose-50/80', 'ring-2', 'ring-rose-200');
+        if(checkIcon) {
+          checkIcon.className = 'fa-regular fa-circle check-icon text-stone-300';
+        }
+      } else {
+        state[type].push(value);
+        element.classList.add('border-hotPink', 'bg-rose-50/80', 'ring-2', 'ring-rose-200');
+        if(checkIcon) {
+          checkIcon.className = 'fa-solid fa-circle-check check-icon text-hotPink';
+        }
+        triggerHeartEffects();
+      }
+    }
+
+    function switchActivityTab(tabKey) {
+      state.currentTab = tabKey;
+      document.querySelectorAll('.activity-tab').forEach(tab => {
+        tab.className = "activity-tab px-3 py-1.5 rounded-xl bg-white text-stone-600 hover:bg-rose-50 whitespace-nowrap transition-all";
+      });
+      const activeTab = document.getElementById(`tab-${tabKey}`);
+      if(activeTab) {
+        activeTab.className = "activity-tab active px-3 py-1.5 rounded-xl bg-hotPink text-white whitespace-nowrap transition-all shadow-sm";
+      }
+      renderActivityOptions(tabKey);
+    }
+
+    function renderActivityOptions(tabKey) {
+      const container = document.getElementById('activityOptionsContent');
+      container.innerHTML = '';
+
+      const options = activityData[tabKey] || [];
+      options.forEach(item => {
+        const isSelected = state.activities.includes(item.name);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => toggleSelection(btn, 'activities', item.name);
+        btn.className = `option-btn p-3 rounded-2xl border ${isSelected ? 'border-hotPink bg-rose-50/80 ring-2 ring-rose-200' : 'border-rose-100 bg-white'} text-left flex flex-col space-y-1 transition-all`;
+
+        btn.innerHTML = `
+          <span class="text-xl">${item.icon}</span>
+          <span class="font-black text-xs text-stone-800">${item.name}</span>
+          <span class="text-[10px] text-stone-400 font-bold">${item.desc}</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function pickRandomActivity() {
+      const allCategories = Object.keys(activityData);
+      const randomCat = allCategories[Math.floor(Math.random() * allCategories.length)];
+      const items = activityData[randomCat];
+      const randomItem = items[Math.floor(Math.random() * items.length)];
+
+      switchActivityTab(randomCat);
+      
+      if(!state.activities.includes(randomItem.name)) {
+        state.activities.push(randomItem.name);
+        renderActivityOptions(randomCat);
+      }
+
+      confettiEffect();
+      showToast(`🎲 狗狗企鵝為你抽中：${randomItem.icon} ${randomItem.name}！`);
+    }
+
+    function goToStep(stepNumber) {
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step4').classList.add('hidden');
+
+      const target = document.getElementById('step' + stepNumber);
+      target.classList.remove('hidden');
+      target.classList.add('slide-in');
+
+      if(stepNumber === 2) updateMoodUI(state.mood, 50);
+      if(stepNumber === 3) updateMoodUI(state.mood, 20);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setDatePreference(type) {
+      const btnWeekend = document.getElementById('btnWeekend');
+      const datePicker = document.getElementById('datePicker');
+
+      if(type === 'this_weekend') {
+        state.datePreference = '本週末就出發！';
+        btnWeekend.className = "flex-1 py-2 rounded-xl border-2 border-rose-300 text-xs font-black text-white bg-hotPink transition-all shadow-sm";
+        datePicker.value = '';
+      } else {
+        if(datePicker.value) {
+          state.datePreference = datePicker.value;
+          btnWeekend.className = "flex-1 py-2 rounded-xl border-2 border-rose-200 text-xs font-black text-hotPink bg-rose-50 transition-all";
+        }
+      }
+    }
+
+    function generateTreatyCard() {
+      updateMoodUI('peace', 100);
+      confettiEffect();
+
+      const customVal = document.getElementById('customActivityInput').value.trim();
+      if(customVal) {
+        state.customActivity = customVal;
+      }
+
+      const customMistakeText = document.getElementById('customMistakeText').value.trim();
+
+      const moodMap = {
+        'angry': '🔥 火山爆發情緒已平復，正帶著狗狗討抱抱向你靠攏',
+        'a_little': '🧊 雖然還有一點小賭氣，但好想跟你貼貼',
+        'waiting': '🥺 早就原諒你了，一直在等你開口抱抱',
+        'hungry': '🍗 帶我去吃熱騰騰大餐，立馬好心情！'
+      };
+      document.getElementById('cardMoodText').innerText = moodMap[state.mood] || '🥺 想跟你好好說話和好';
+
+      const mistakesContainer = document.getElementById('cardMistakesList');
+      mistakesContainer.innerHTML = '';
+      let hasMistakeContent = false;
+
+      if(state.mistakes.length > 0) {
+        state.mistakes.forEach(item => {
+          const li = document.createElement('li');
+          li.innerText = item;
+          mistakesContainer.appendChild(li);
+        });
+        hasMistakeContent = true;
+      }
+
+      if(customMistakeText) {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="font-black text-hotPink">✍️ 真心話：</span>"${customMistakeText}"`;
+        mistakesContainer.appendChild(li);
+        hasMistakeContent = true;
+      }
+
+      if(!hasMistakeContent) {
+        mistakesContainer.innerHTML = '<li>溝通語氣改進，多體貼對方感受</li>';
+      }
+
+      const perksContainer = document.getElementById('cardPerksList');
+      perksContainer.innerHTML = '';
+      if(state.perks.length > 0) {
+        state.perks.forEach(item => {
+          const li = document.createElement('li');
+          li.innerText = item;
+          perksContainer.appendChild(li);
+        });
+      } else {
+        perksContainer.innerHTML = '<li>無條件溫暖狗狗大抱抱與貼貼 🐾</li>';
+      }
+
+      let activitiesStr = state.activities.join('、');
+      if(state.customActivity) {
+        activitiesStr += (activitiesStr ? '、' : '') + state.customActivity;
+      }
+      document.getElementById('cardActivitiesText').innerText = activitiesStr || '🍲 吃爆熱騰騰火鍋大餐';
+
+      document.getElementById('cardDateText').innerText = '⏰ 時間：' + state.datePreference;
+
+      const todayStr = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      document.getElementById('treatyDateStr').innerText = '簽署日期：' + todayStr;
+
+      goToStep(4);
+    }
+
+    function shareTextToClipboard() {
+      let activitiesStr = state.activities.join('、');
+      if(state.customActivity) activitiesStr += (activitiesStr ? '、' : '') + state.customActivity;
+
+      const customMistakeText = document.getElementById('customMistakeText').value.trim();
+      let customMistakeMsg = customMistakeText ? `\n✍️ 真心話："${customMistakeText}"` : '';
+
+      const charData = characters[state.character];
+
+      const message = `🌸【Doggy & Penguin 破冰和解協定】🕊️💕\n\n` +
+        `對不起啦，剛才是我不好 🥺\n` +
+        `這是我與${charData.name}${charData.emoji}為你誠心寫給你的和解協定：${customMistakeMsg}\n\n` +
+        `🌡️ 氣氛降溫狀態：${document.getElementById('cardMoodText').innerText}\n` +
+        `🎁 我的賠罪誠意：${state.perks.length > 0 ? state.perks.join(', ') : '無條件狗狗大抱抱與貼貼'}\n` +
+        `🗺️ 下次修復約會：${activitiesStr || '吃熱騰騰大餐'}\n` +
+        `📅 出發時間：${state.datePreference}\n\n` +
+        `可以原諒我，跟我講講話了嗎？👉👈❤️`;
+
+      const textarea = document.createElement('textarea');
+      textarea.value = message;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('和解訊息已複製！快傳給對方吧 💌');
+      } catch (err) {
+        showToast('複製失敗，請手動截圖複製');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function downloadCardImage() {
+      const card = document.getElementById('treatyCard');
+      showToast('正在生成粉色和解證書圖卡...');
+      
+      html2canvas(card, {
+        scale: 2,
+        backgroundColor: null,
+        logging: false
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Doggy_Penguin和解證書卡.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('圖卡下載成功 📸');
+      });
+    }
+
+    function restartFlow() {
+      state.mood = 'angry';
+      state.mistakes = [];
+      state.perks = [];
+      state.activities = [];
+      state.customActivity = '';
+      
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('border-hotPink', 'bg-rose-50/80', 'ring-2', 'ring-rose-200');
+        const icon = btn.querySelector('.check-icon');
+        if(icon) icon.className = 'fa-regular fa-circle check-icon text-stone-300';
+      });
+
+      updateMoodUI('angry', 90);
+      renderActivityOptions('food');
+      goToStep(1);
+    }
+
+    let timerInterval = null;
+    function openCoolDownModal() {
+      const modal = document.getElementById('coolDownModal');
+      const timerEl = document.getElementById('timerCount');
+      const closeBtn = document.getElementById('modalCloseBtn');
+      
+      modal.classList.remove('hidden');
+      let timeLeft = 10;
+      timerEl.innerText = timeLeft;
+      closeBtn.disabled = true;
+      closeBtn.className = "w-full py-2.5 rounded-xl bg-stone-200 text-stone-400 font-bold text-xs cursor-not-allowed";
+      closeBtn.innerText = "請等候冷靜倒數 (" + timeLeft + "s)...";
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = timeLeft;
+        closeBtn.innerText = "請等候冷靜倒數 (" + timeLeft + "s)...";
+
+        if(timeLeft <= 0) {
+          clearInterval(timerInterval);
+          closeBtn.disabled = false;
+          closeBtn.className = "w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-400 to-hotPink text-white font-black text-xs shadow-md pulse-btn cursor-pointer";
+          closeBtn.innerText = "冷靜降溫完成！繼續下一步 💕";
+        }
+      }, 1000);
+    }
+
+    function closeModal() {
+      document.getElementById('coolDownModal').classList.add('hidden');
+      goToStep(2);
+    }
+
+    function triggerHeartEffects() {
+      const pinkEmojis = ['🐾', '🦴', '🐶', '🐧', '💖', '✨', '🌸', '💕'];
+      for(let i = 0; i < 6; i++) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.className = 'heart-particle text-xl';
+          heart.innerText = pinkEmojis[Math.floor(Math.random() * pinkEmojis.length)];
+          heart.style.left = (Math.random() * 80 + 10) + 'vw';
+          heart.style.top = (Math.random() * 20 + 70) + 'vh';
+          document.body.appendChild(heart);
+
+          setTimeout(() => heart.remove(), 3000);
+        }, i * 120);
+      }
+    }
+
+    function confettiEffect() {
+      if(typeof confetti === 'function') {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#FF4D6D', '#FF8DA1', '#FFD1DC', '#FFF9E6']
+        });
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
